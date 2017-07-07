@@ -137,10 +137,6 @@ install_elrepo() {
 				install_config
     fi
 
-    if [ ! -f /etc/yum.repos.d/elrepo.repo ]; then
-        echo -e "${red}Error:${plain} Install elrepo failed, please check it."
-        exit 1
-    fi
 }
 
 install_config() {
