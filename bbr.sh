@@ -120,9 +120,21 @@ install_elrepo() {
     rpm --import https://www.elrepo.org/RPM-GPG-KEY-elrepo.org
 
     if centosversion 6; then
-        rpm -Uvh http://www.elrepo.org/elrepo-release-6-6.el6.elrepo.noarch.rpm
+        rpm --import https://www.elrepo.org/RPM-GPG-KEY-elrepo.org
+				yum install -y http://elrepo.org/linux/kernel/el6/x86_64/RPMS/kernel-ml-4.11.8-1.el6.elrepo.x86_64.rpm
+				yum remove -y kernel-headers
+				yum install -y http://elrepo.org/linux/kernel/el6/x86_64/RPMS/kernel-ml-headers-4.11.8-1.el6.elrepo.x86_64.rpm
+				yum install -y http://elrepo.org/linux/kernel/el6/x86_64/RPMS/kernel-ml-devel-4.11.8-1.el6.elrepo.x86_64.rpm
+				sed -i 's/^default=.*/default=0/g' /boot/grub/grub.conf	
+				install_config
     elif centosversion 7; then
-        rpm -Uvh http://www.elrepo.org/elrepo-release-7.0-2.el7.elrepo.noarch.rpm
+        rpm --import https://www.elrepo.org/RPM-GPG-KEY-elrepo.org
+				yum install -y http://elrepo.org/linux/kernel/el7/x86_64/RPMS/kernel-ml-4.11.8-1.el7.elrepo.x86_64.rpm
+				yum remove -y kernel-headers
+				yum install -y http://elrepo.org/linux/kernel/el7/x86_64/RPMS/kernel-ml-headers-4.11.8-1.el7.elrepo.x86_64.rpm
+				yum install -y http://elrepo.org/linux/kernel/el7/x86_64/RPMS/kernel-ml-devel-4.11.8-1.el7.elrepo.x86_64.rpm
+				grub2-set-default 0
+				install_config
     fi
 
     if [ ! -f /etc/yum.repos.d/elrepo.repo ]; then
