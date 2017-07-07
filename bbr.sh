@@ -120,23 +120,15 @@ install_elrepo() {
     rpm --import https://www.elrepo.org/RPM-GPG-KEY-elrepo.org
 
     if centosversion 6; then
-        rpm --import https://www.elrepo.org/RPM-GPG-KEY-elrepo.org
-				yum install -y http://elrepo.org/linux/kernel/el6/x86_64/RPMS/kernel-ml-4.11.8-1.el6.elrepo.x86_64.rpm
-				yum remove -y kernel-headers
-				yum install -y http://elrepo.org/linux/kernel/el6/x86_64/RPMS/kernel-ml-headers-4.11.8-1.el6.elrepo.x86_64.rpm
-				yum install -y http://elrepo.org/linux/kernel/el6/x86_64/RPMS/kernel-ml-devel-4.11.8-1.el6.elrepo.x86_64.rpm
-				sed -i 's/^default=.*/default=0/g' /boot/grub/grub.conf	
-				install_config
+        rpm -Uvh http://www.elrepo.org/elrepo-release-6-6.el6.elrepo.noarch.rpm
     elif centosversion 7; then
-        rpm --import https://www.elrepo.org/RPM-GPG-KEY-elrepo.org
-				yum install -y http://elrepo.org/linux/kernel/el7/x86_64/RPMS/kernel-ml-4.11.8-1.el7.elrepo.x86_64.rpm
-				yum remove -y kernel-headers
-				yum install -y http://elrepo.org/linux/kernel/el7/x86_64/RPMS/kernel-ml-headers-4.11.8-1.el7.elrepo.x86_64.rpm
-				yum install -y http://elrepo.org/linux/kernel/el7/x86_64/RPMS/kernel-ml-devel-4.11.8-1.el7.elrepo.x86_64.rpm
-				grub2-set-default 0
-				install_config
+        rpm -Uvh http://www.elrepo.org/elrepo-release-7.0-2.el7.elrepo.noarch.rpm
     fi
 
+    if [ ! -f /etc/yum.repos.d/elrepo.repo ]; then
+        echo -e "${red}Error:${plain} Install elrepo failed, please check it."
+        exit 1
+    fi
 }
 
 install_config() {
@@ -180,16 +172,6 @@ install_bbr() {
             echo -e "${red}Error:${plain} Install latest kernel failed, please check it."
             exit 1
         fi
-        yum install -y make gcc
-				wget -O ./tcp_tsunami.c https://gist.github.com/anonymous/ba338038e799eafbba173215153a7f3a/raw/55ff1e45c97b46f12261e07ca07633a9922ad55d/tcp_tsunami.c
-				echo "obj-m:=tcp_tsunami.o" > Makefile
-				make -C /lib/modules/$(uname -r)/build M=`pwd` modules CC=/usr/bin/gcc
-				chmod +x ./tcp_tsunami.ko
-				cp -rf ./tcp_tsunami.ko /lib/modules/$(uname -r)/kernel/net/ipv4
-				insmod tcp_tsunami.ko
-				depmod -a
-				echo "net.core.default_qdisc=fq" >> /etc/sysctl.conf
-				echo "net.ipv4.tcp_congestion_control=tsunami" >> /etc/sysctl.conf
     elif [[ "${release}" == "debian" || "${release}" == "ubuntu" ]]; then
         [[ ! -e "/usr/bin/wget" ]] && apt-get -y update && apt-get -y install wget
         get_latest_version
@@ -201,19 +183,6 @@ install_bbr() {
         fi
         dpkg -i ${deb_kernel_name}
         rm -fv ${deb_kernel_name}
-        apt-get install build-essential -y
-				add-apt-repository ppa:ubuntu-toolchain-r/test -y
-				apt-get update -y 
-				apt-get install gcc-4.9 -y
-				apt-get install make gcc-4.9 -y
-				wget -O ./tcp_tsunami.c https://gist.github.com/anonymous/ba338038e799eafbba173215153a7f3a/raw/55ff1e45c97b46f12261e07ca07633a9922ad55d/tcp_tsunami.c
-				echo "obj-m:=tcp_tsunami.o" > Makefile
-				make -C /lib/modules/$(uname -r)/build M=`pwd` modules CC=/usr/bin/gcc-4.9
-				install tcp_tsunami.ko /lib/modules/$(uname -r)/kernel
-				cp -rf ./tcp_tsunami.ko /lib/modules/$(uname -r)/kernel/net/ipv4
-				depmod -a
-				echo "net.core.default_qdisc=fq" >> /etc/sysctl.conf
-				echo "net.ipv4.tcp_congestion_control=tsunami" >> /etc/sysctl.conf
     else
         echo -e "${red}Error:${plain} OS is not be supported, please change to CentOS/Debian/Ubuntu and try again."
         exit 1
@@ -223,26 +192,4 @@ install_bbr() {
 }
 
 clear
-echo "---------- System Information ----------"
-echo " OS      : $opsy"
-echo " Arch    : $arch ($lbit Bit)"
-echo " Kernel  : $kern"
-echo "----------------------------------------"
-echo " Auto install latest kernel for TCP BBR MOD"
-echo " Auther: feiyang"
-echo " URL: https://91vps.club"
-echo " refer: https://teddysun.com/489.html"
-echo "----------------------------------------"
-echo
-echo "Press any key to start...or Press Ctrl+C to cancel"
-char=`get_char`
-
 install_bbr
-
-echo
-read -p "Info: The system needs to be restart. Do you want to reboot? [y/n]" is_reboot
-if [[ ${is_reboot} == "y" || ${is_reboot} == "Y" ]]; then
-    reboot
-else
-    exit
-fi
